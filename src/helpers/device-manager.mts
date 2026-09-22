@@ -146,7 +146,13 @@ export class DeviceManager implements IDeviceManager {
         this.logger.info('Fetching devices and zones from Homey...');
     
         const zones = await this.apiHelper.zones.getZones();
-        const devices = await this.apiHelper.devices.getDevices();
+        // $cache: false — the SDK's getAll cache, once marked complete, is only
+        // ever refreshed by realtime device.update events. If one is ever missed
+        // (or a partial-payload update clobbers capabilitiesObj — Item.__update
+        // is a shallow merge), a capability value can go stale forever without
+        // this, since fetchData() would otherwise just be handed the same
+        // in-memory cache with no network round trip.
+        const devices = await this.apiHelper.devices.getDevices({ $cache: false });
 
         this.logger.info(`Found ${Object.keys(devices).length} devices and ${Object.keys(zones).length} zones`);
 
